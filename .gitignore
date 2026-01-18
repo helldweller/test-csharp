@@ -1,0 +1,54 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# VS Code
+.vscode/
+.history/
+
+# Logs
+*.log
+logs/
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Dotnet artifacts
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Resharper / Rider
+_ReSharper*/
+*.DotSettings.user
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage*/
+*.coverage
+*.coveragexml
+
+# Publish outputs
+**/wwwroot/dist/
+**/publish/
+
+# Node / frontend
+node_modules/
+npm-debug.log*
+yarn.lock
+package-lock.json

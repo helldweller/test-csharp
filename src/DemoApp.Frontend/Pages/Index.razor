@@ -1,0 +1,99 @@
+@page "/"
+
+@inject DemoApp.Frontend.Services.ServerCommunicationService ServerCommunicationService
+
+<div class="telegram-chat-container">
+    <div class="telegram-messages border bg-white shadow-sm">
+        @if (_messages.Count == 0 && string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="text-muted small">Нет сообщений. Напишите что-нибудь, чтобы начать диалог.</div>
+        }
+
+        @foreach (var message in _messages)
+        {
+            <div class="d-flex justify-content-end mb-2">
+                <div class="telegram-bubble telegram-bubble-outgoing">
+                    @message
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-danger py-1 px-2">@_errorMessage</div>
+        }
+    </div>
+
+    <div class="telegram-input-row border-top bg-light">
+        <div class="row g-2 align-items-center">
+            <div class="col-9 col-sm-10">
+                <input class="form-control"
+                       placeholder="Напишите сообщение..."
+                       @bind="_text"
+                       @onkeydown="OnKeyDown" />
+            </div>
+            <div class="col-3 col-sm-2 text-end">
+                <button class="btn btn-primary"
+                        disabled="@IsSendDisabled"
+                        @onclick="SendAsync">
+                    Отправить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _text = string.Empty;
+    private readonly List<string> _messages = new();
+    private string? _errorMessage;
+    private bool _isSending;
+    private bool IsSendDisabled => _isSending || string.IsNullOrWhiteSpace(_text);
+
+    protected override async Task OnInitializedAsync()
+    {
+        ServerCommunicationService.MessageReceived += OnMessageReceivedAsync;
+        ServerCommunicationService.ErrorOccurred += OnErrorAsync;
+
+        await ServerCommunicationService.InitializeAsync();
+    }
+
+    private async Task OnMessageReceivedAsync(string message)
+    {
+        _messages.Add(message);
+        _errorMessage = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnErrorAsync(string error)
+    {
+        _errorMessage = error;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SendAsync()
+    {
+        _errorMessage = null;
+        _isSending = true;
+        try
+        {
+            var success = await ServerCommunicationService.SendMessageAsync(_text);
+            if (!success)
+            {
+                _errorMessage = "Не удалось отправить сообщение на сервер.";
+            }
+        }
+        finally
+        {
+            _isSending = false;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && !string.IsNullOrWhiteSpace(_text) && !_isSending)
+        {
+            await SendAsync();
+        }
+    }
+}
